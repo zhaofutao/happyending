@@ -218,26 +218,3 @@ title可加可不加
         echo "这是一句非常牛逼的代码";
     }
 ```
-
-# 十一、流程图 (不支持)
-```
-(```)mermaid
-graph TB
-A[Apple]-->B{Boy}
-A---C(Cat)
-B.->D((Dog))
-C==喵==>D
-style A fill:#2ff,fill-opacity:0.1,stroke:#faa,stroke-width:4px
-style D stroke:#000,stroke-width:8px;
-(```)
-```
-效果： 
-```mermaid
-graph TB
-A[Apple]-->B{Boy}
-A---C(Cat)
-B.->D((Dog))
-C==喵==>D
-style A fill:#2ff,fill-opacity:0.1,stroke:#faa,stroke-width:4px
-style D stroke:#000,stroke-width:8px;
-```
