@@ -19,7 +19,11 @@
 ##### 这是五级标题
 ###### 这是六级标题
 
-# 二、字体
+# 二、段落
+段落的前后要有空行，所谓的空行是指没有文本内容，若想在段内强制换行的方式是使用两个以上空格加回车。
+
+
+# 三、字体
 - 加粗  
 要倾斜的文字左右分别用两个*号包起来   
 - 斜体  
@@ -41,7 +45,7 @@
 ***这是斜体加粗的文字***  
 ~~这是加删除线的文字~~  
 
-# 三、引用
+# 四、引用
 在引用的文字前加>即可，引用也可以嵌套，如加两个>>或者三个>>>  
 示例：  
 ```
@@ -54,7 +58,7 @@
 >>这是引用的内容
 >>>>>>>>>>这是引用的内容
 
-# 四、分割线
+# 五、分割线
 三个或者三个以上的-或者*都可以  
 示例：  
 ```
@@ -69,7 +73,7 @@
 ***
 *****
 
-# 五、图片
+# 六、图片
 语法:   
 ```
 ![图片alt](图片地址 ''图片title'')
@@ -80,7 +84,7 @@
 示例：
 ![blockchain](https://www.baidu.com/img/superlogo_c4d7df0a003d3db9b65e9ef0fe6da1ec.png?where=super"百度logo")
 
-# 六、超链接
+# 七、超链接
 语法：  
 ```
 [超链接名](超链接地址 "超链接title")
@@ -95,7 +99,7 @@ title可加可不加
 [简书](http://jianshu.com)  
 [百度](http://baidu.com)  
 
-# 七、列表
+# 八、列表
 - 无序列表  
 语法：  
 使用-、+、*任何一种都可以  
@@ -146,7 +150,7 @@ title可加可不加
    2. 二级有序列表内容
    3. 二级有序列表内容
    
-# 八、表格
+# 九、表格
 语法：  
 ```
 表头|表头|表头
@@ -164,19 +168,20 @@ title可加可不加
 示例：  
 ```
 姓名|技能|排行
---|:--:|--:
+----|:---:|---:
 刘备|哭|大哥
 关羽|打|二哥
 张飞|骂|三弟
 ```
-效果如下：  
-姓名|技能|排行
---|:--:|--:
-刘备|哭|大哥
-关羽|打|二哥
-张飞|骂|三弟
+效果如下:  
 
-# 九、代码
+姓名|技能|排行  
+---|:---:|---:  
+刘备|哭|大哥  
+关羽|打|二哥  
+张飞|骂|三弟  
+
+# 十、代码
 语法：  
 单行代码：代码之间分别用一个反引号包起来
 ```
@@ -214,31 +219,25 @@ title可加可不加
     }
 ```
 
-# 十、流程图 (不支持)
+# 十一、流程图 (不支持)
 ```
-```flow
-st=>start: 开始
-op=>operation: My Operation
-cond=>condition: Yes or No?
-e=>end
-st->op->cond
-cond(yes)->e
-cond(no)->op
-&```
+(```)mermaid
+graph TB
+A[Apple]-->B{Boy}
+A---C(Cat)
+B.->D((Dog))
+C==喵==>D
+style A fill:#2ff,fill-opacity:0.1,stroke:#faa,stroke-width:4px
+style D stroke:#000,stroke-width:8px;
+(```)
 ```
-效果：   
-```flow
-st=>start: 开始
-op=>operation: My Operation
-cond=>condition: Yes or No?
-e=>end
-st->op->cond
-cond(yes)->e
-cond(no)->op
-&```
-
-
-
-
-
-
+效果： 
+```mermaid
+graph TB
+A[Apple]-->B{Boy}
+A---C(Cat)
+B.->D((Dog))
+C==喵==>D
+style A fill:#2ff,fill-opacity:0.1,stroke:#faa,stroke-width:4px
+style D stroke:#000,stroke-width:8px;
+```
