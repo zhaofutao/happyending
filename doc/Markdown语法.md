@@ -78,7 +78,7 @@
 图片title是图片的标题，当鼠标移到图片上时显示的内容。title可加可不加
 ```
 示例：
-![blockchain](https://upload-images.jianshu.io/upload_images/6860761-fd2f51090a890873.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/550/format/webp"区块链")
+![blockchain](https://www.baidu.com/img/superlogo_c4d7df0a003d3db9b65e9ef0fe6da1ec.png?where=super"百度logo")
 
 # 六、超链接
 语法：  
