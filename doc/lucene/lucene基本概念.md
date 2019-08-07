@@ -54,6 +54,12 @@ Lucene是一个高效的、基于Java的全文检索库。
    1. 计算权重（Term Weight）的过程
    影响一个词在一篇文档中的重要性主要有2个因素：
       1. Term Frequency(tf)：即此词在此文档中出现了多少次，tf越大说明越重要；
-      2. Document Frequency(df)：即有多少文档包含此Term，df越大说明越不重要；
-      $W_1$ = $tf_t,d$ × log(n / $df_t$)
-
+      2. Document Frequency(df)：即有多少文档包含此Term，df越大说明越不重要；  
+      3. 权重计算公式：$W_1$ = $tf_t,d$ × log(n / $df_t$)
+   2. 判断Term之间的关系从而得到文档相关性的过程，也即向量空间模型的算法（VSM）
+    我们把文档看做一些列词，每个词都有一个权重，不同的词根据自己在文档中的权重来影响文档相关性的打分计算。  
+    于是我们把所有此文档中词的权重看成一个向量：  
+    Document Vector = {term1 : weight1, term2 : weight2, ... , termN : weightN}  
+    我们把所有搜索出来的文档向量及查询向量放在一个N维空间中，每个词是一维，然后我们通过计算两个向量的余弦计算相关性打分。
+    
+    
