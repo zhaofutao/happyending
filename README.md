@@ -9,4 +9,4 @@
 >>####   [1.3 mybatis](doc/技能/mybatis)
 >### [2、项目](doc/项目)
 
-## [二、资源](resource)
+## [二、资源](resource)  
