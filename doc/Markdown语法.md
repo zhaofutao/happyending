@@ -82,7 +82,7 @@
 图片title是图片的标题，当鼠标移到图片上时显示的内容。title可加可不加
 ```
 示例：
-![blockchain](../resource/images/marketplace-illustration-01.svg "github logo")
+![blockchain](/resource/images/marketplace-illustration-01.svg "github logo")
 
 # 七、超链接
 语法：  
