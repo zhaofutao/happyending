@@ -60,9 +60,27 @@
 
 # 四、事务
 ## 1、事务基本概念
-## 2、事务的特点
+        事务是一组要么同时执行成功，要么同时执行失败的SQL语句。是数据库操作的一个执行单元。
+        事务开始于连接到数据库上，并执行一条DML语句（INSERT、UPDATE或DELETE）；或上一个事务结束后，又输入了另外一条DML语句。
+        事务结束于执行COMMIT或ROLLBACK语句；执行一条DDL语句，如CREATE TABLE，这种情况下，会自动执行COMMIT语句；执行一条DCL语句，如GRANT，这种情况下，会自动执行COMMIT语句；断开与数据库的连接；执行了一条DML语句，该语句却失败了，这种情况下，会为这个无效的DML语句执行ROLLBACK语句；
+## 2、事务的特点（ACID）
+- atomicity(原子性)  
+    一个事务内的所有操作是一个整体，要么全部成功，要么全部失败；
+- consistency（一致性）  
+    一个事务内有一个操作失败时，所有的更改过的数据都必须回滚到修改前的状态；
+- isolation(隔离性)  
+    事务查看数据时数据所处的状态，要么是另一并发事务修改它之前的状态，要么是另一事物修改它之后的状态，事务不会查看中间状态的数据；
+- durability(持久性)  
+    持久性事务完成后，它对于系统的影响是永久性的；
+## 3、事务隔离级别（从低到高）
+- 读取未提交（Read Uncommitted）
+- 读取已提交（Read Committed）
+- 可重复读（Repeatable Read）
+- 序列化（Serializable）
 
 
-# 五、时间处理
-
-# 六、CLOB、BLOB文件大对象操作
+# 五、CLOB、BLOB文件大对象操作
+## 1、CLOB（Character Large Object）
+        用于存储大量的文本数据；
+## 2、BLOB（Binary Large Object）
+        用于存储大量的二进制数据
