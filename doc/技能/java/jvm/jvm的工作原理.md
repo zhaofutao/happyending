@@ -1,4 +1,17 @@
-# JVM运行流程
+# 一、JVM简介
+    JVM是一种规范，是虚构出来的一台计算机，包括字节码指令集和内存管理（方法区、堆、栈、本地方法栈）。
+    JVM与Java无关，任何语言文件被编译为.class文件后，都能直接在JVM上执行。
+    常见的JVM实现：
+  - Hotspot：oracle官方；
+  - Jrockit：BEA，曾经号称世界上最快的JVM，被Oracle收购合并于Hotspot；
+  - J9：IBM;
+  - Microsoft VM;
+  - TaobaoVM hostspot淘宝深度定制版；
+  - LiquidVM 直接针对硬件；
+  - azul zing 最新垃圾回收的业界标杆；
+
+
+# 二、JVM运行流程
 ![blockchain](/resource/images/jvm运行流程.png "JVM运行流程")  
 
         Java程序经过javac编译后，将java代码编译为字节码也就是.class文件，然后在不同的操作系统上依靠不同的Java虚拟机进行解释，最后再转换为不同平台的机器码，最终得到执行。
@@ -18,7 +31,7 @@ public class HelloWorld {
         然后初始化JVM，获取JNI接口；
         最后找到class文件后加载进JVM，找到main方法，最后执行。
 
-# JVM内部结构
+# 三、JVM内部结构
 ![blockchain](/resource/images/jvm内部结构.png "JVM内部结构")
         .class文件被JVM加载以后，经过JVM的内存空间调配，最终是由执行引擎完成class文件的执行。
 
