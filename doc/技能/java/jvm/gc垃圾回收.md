@@ -35,4 +35,48 @@
   - 当我们new出一个对象，JVM会首先尝试往栈上分配，如果能够分配的下，就分配到栈上。分配到栈上的好处是不需要GC管理，什么时候不需要此对象了，将对象出栈就可以了。分配到栈上的对象要求：1、对象比较小，因为栈的空间不够大；2、对象比较简单；
   - 如果栈上分配不下，我们就判断这个对象是不是够大，如果足够大就直接放在老年代区，在老年代区的对象经过一次全量垃圾回收FGC后，才有可能被回收掉；
   - 如果栈上分配不下并且对象不大，就会判断对象能否被存在线程本地分配缓冲区TLAB(Thread Local Allocation Buffer)，但是不管放不放得下，都是放在新生代区的伊甸区，但是因为堆是共享的，多个线程可以同时创建对象就可能会争夺同一块内存区域，所以为了保证线程安全，伊甸区又被分配成一个个线程本地分配缓冲区，这个线程本地缓冲区是线程私有的，避免了多线程环境下使用同步技术带来的性能损耗。
+  - 伊甸区的对象经过一次GC后，如果被回收调了，那就结束了生命周期。
+  - 伊甸区的对象在经过一次GC后，如果没有被回收调，JVM在整个新生代都采用拷贝算法，将不是垃圾的对象拷贝到survivor1。
+  - survivor1的对象在经过一次GC后如果对象还存活，那么就拷贝到survivor2并且清理掉survivor1的所有对象。
+  - 当对象的分代年龄达到了移到老年代的界限（一般分代垃圾回收器默认是15，CMS默认是6），就会被移到老年代中，老年代采用标记压缩算法，保证内存的连续性；
 
+# 六、常见垃圾回收器
+    jdk从1.0到14.0一共诞生了10种垃圾回收期。
+![blockchain](/resource/images/常见垃圾回收器.png)  
+    分类如下：
+  - 分代模型：Serial、Serial Old、Parallel Scavenge、Parallel Old、ParNew、CMS
+  - 不分代模型：G1(物理模型上没分代，逻辑层面有分代)、ZGC、Shenandoah（redhat公司开发）
+  - 特殊模型：Epsilon（只跟踪垃圾的产生和回收，并未真正回收，用于调试或进程声明周期很短的情况）
+
+## 1. Serial垃圾回收器  
+![blockchain](/resource/images/serial.jpg "Serial垃圾回收器")  
+        Serial和Serial Old这两种垃圾收集器已经很常见了，他们的原理相同，只是用于的区域不同，Serial用于新生代、Serial Old用于老年代。
+        Serial垃圾回收器在每次进行垃圾回收的时候，会停止所有的业务（Stop The World， STW），然后由一个GC单线程来做垃圾回收。
+## 2. Parallel Scavenge垃圾回收器  
+![blockchain](/resource/images/parallel%20scavenge.jpg "Parallel Scavenge垃圾回收器")
+        当Serial垃圾回收器的GC单线程处理不过来室，就需要GC多个线程来处理了，这就是Parallel Scavenge。Parallel Scavenge和Parallel Old原理相同。
+
+## 3. ParNew垃圾回收器
+![blockchain](/resource/images/parnew.jpg "ParNew垃圾回收器")  
+        ParNew是来自Parallel Scavenge的增强版本，使其可以配合CMS垃圾回收器进行使用，Parallel Scavenge无法直接配合CMS进行使用，所以诞生了ParNew。
+
+## 4. CMS垃圾回收器
+![blockchain](/resource/images/cms.jpg "CMS垃圾回收器")  
+![blockchain](/resource/images/cms线程.jpg "CMS线程")
+        CMS一共分为四个阶段：
+  - 初始阶段：这个阶段是STW的，但是只标记跟对象，耗时不多；
+  - 并发标记：这个阶段是最难最耗时的，业务线程依然在继续拓展对象树；而GC线程也在进行标记，标记处垃圾，这个阶段存在两个严重的问题：
+    - 当GC线程将一块内存标记为垃圾了，但是业务线程里又有对象指向了次内存，那么就产生了错标，为了解决这个问题，我们利用重新标记阶段进行二次标记；
+    - 当GC线程标记一块内存不是垃圾后，业务线程又删除了对这块内存的引用，那么就产生了漏标。漏标没有处理，因为下一次回收也能标记并清除，但是这就导致了CMS产生了浮动垃圾，浮动垃圾多了就会造成内存的碎片化；
+  - 重新标记：这个阶段是为了解决错标的问题，并且也是STW的。STW后，再次扫描所有对象，看看有没有错标的，这块耗时也是可以接受的（但是对象特别大特别复杂时依然很慢，这就是CMS隐藏的巨大BUG）；
+  - 并发清理：完成重新标记后，GC线程与业务线程并行，GC线程对标记好的垃圾对象进行清理；
+
+# 5. G1垃圾回收器  
+![blockchain](/resource/images/g1.jpg "G1垃圾回收器")  
+        G1垃圾回收器所采用的策略是不再物理上分区，将内存分为一小块一小块，每一小块可以是任何一种区域，采用分而治之的方式。哪一块内存满了，GC只需要回收这一块内容，这样其他线程在其他块产生对象，而要回收的区域同步进行回收，效率上得到巨大的回升。
+
+
+# 七、常见垃圾回收器组合参数设定
+  - -XX:+UseSerialGC = Serial New (DefNew) + Serial Old
+  - -XX:+UseParallelGC = Parallel Scavenge + Parallel Old （jdk1.8默认）【PS+Serial Old】
+  - -XX:+UseParallelOldGC =  Parallel Scavenge + Parallel Old
