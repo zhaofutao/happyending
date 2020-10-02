@@ -1,65 +1,98 @@
-# 一、基本原理
-Lucene是一个高效的、基于Java的全文检索库。
-我们生活中的数据总体分为两种：结构化数据和非结构化数据；
-结构化数据：是指具有固定格式或有限长度的数据，如数据库、元数据等；对结构化数据的搜索，如对数据库的搜索，用SQL语句；再如对元数据的搜索，如利用windows搜索对文件名、类型、修改时间进行搜索等。
-非结构化数据：指不定长或无固定格式的数据，如邮件，word文档等。对非结构化数据的搜索，如利用windows的搜索可以搜索文件内容，Linux下的grep命令，再如用Google和百度可以搜索大量内容数据。
-对非结构化数据也即全文搜索主要有两种方法：
-一种是顺序扫描法，比如要找内容包含某一个字符串的文件，就是一个文档一个文档的看，直到扫描完所有的文件。
-另一种方法也即将非结构化数据中的一部分信息提取出来，重新组织，使其变得有一定结构，然后对此有一定结构的数据进行搜索，从而达到搜索相对较快的目的。这部分从非结构化数据中提取出的然后重新组织的信息，我们称之为索引。这种先建索引，然后对索引进行搜索的过程就叫做全文检索（Full-text Search）。
+# 一、Lucene介绍
+        Apache Lucene是一个开源的高性能、可扩展的信息检索引擎，提供了强大的数据检索能力。
+        基于Lucene的开源项目有很多，最知名的要数Elasticsearch和Solr，如果说Elasticsearch和Solr是一辆设计精美、性能卓业的跑车，那么Lucene就是为其提供强大动力的引擎。
+        Lucene的官方对自己的优势总结为几点：
+        1、Scalable、High-Performance Index；
+        2、Powerful、Accurate and Efficient Search Algorithms；
 
-全文检索大体分为两个过程，索引创建（Indexing）和搜索索引（Search）。
-索引创建：将现实世界中所有的结构化和非结构化数据提取信息，创建索引的过程。
-搜索索引：得到用户的查询请求，搜索创建的索引，然后返回结果的过程。
+# 二、Lucene基本概念
+![blockchain](/resource/images/lucene抽象架构图.png "Lucene抽象架构图")
 
-# 二、基本概念  
-- 反向索引  
-非结构化数据中所存储的信息是每个文件包含哪些字符串，也即已知文件，欲求字符串相对容易，也即是从文件到字符串的映射。
-而我们搜索的信息是哪些文件包含此字符串，也即已知字符串，欲求文件，也即从字符串到文件的映射。
-由于从字符串到文件的映射是文件到字符串映射的反向过程，于是保存这种信息的索引称为反向索引。
+## 1. Index（索引）  
+        Lucene的Index类似数据库的表的概念，但与传统表的概念会有很大的不同。传统关系型数据库或者NOSQL数据库的表，在创建时至少要定义表的Scheme，定义表的主键或列等，会有一些明确定义的约束。而Lucene的Index，则完全没有约束。
+        Lucene的Index可以理解为一个文档收纳箱，你可以往内部塞入新的文档，或者从里面拿出文档 ，但如果你要修改里面的某个文档，则必须先拿出来修改后再塞进去。
+## 2. Document（文档）  
+        类似于数据库内的行或者文档数据库内文档的概念，一个Index内会包含多个Document。写入Index的Document会被分配一个唯一的ID，即Sequence Number（更多被叫做DocId）。
+## 3. Field（字段）
+        一个Document会由一个或多个Field组成，Field是Lucene中数据索引的最小定义单位。Lucene提供多种不同类型的Field，如StringField、TextField、LongField或NumericDocValuesField等，Lucene根据Field的类型（FieldType）来判断要采用哪种类型的索引方式（Invert Index、Store Field、DocValues或N-dimensional等）。
+## 4. Term和Term Dictionary
+        Term是Lucene中索引和搜索的最小单位，一个Field会由一个或多个Term组成，Term由Field经过Analyzer（分词）组成。
+        Term Dictionary 是Term的词典，是根据条件查找Term的基本索引。
+## 5. Segment
+        一个Index会由一个或多个sub-index构成，sub-index被称为Segment。
+        Lucene中的数据写入会先写内存的一个Buffer，当Buffer内数据到一定量后会被flush成一个Segment，每个Segment有自己独立的索引，可独立被查询，但数据永远不能被更改。Segment中写入的文档不可被修改，但可被删除，删除的方式是由另外一个文件保存需要被删除的文档的DocId，保证数据文件不可被修改。Index的查询需要对多个Segment进行查询并对结果进行合并，还要处理被删除的文档，为了对查询进行优化，Lucene会有策略对多个Segment进行合并。
+        Segment在被flush或commit之前，数据保存在内存中，是不可被搜索的，这也就是为什么Lucene被称为近实时而非实时查询的原因。
+## 6. Sequence Number
+        Sequence Number是Lucene中一个很重要的概念，数据库内通过主键来标识一行，而Lucene的Index通过DocId来唯一标识一个Doc。
+        DocId并不在Index内唯一，而是Segment内唯一，这样是为了做写入和压缩优化。如果一个Index内有两个Segment，每个Segment内分别有100个Doc，在Segment内DocId都是0-100，转换到Index级别的DocId，需要将第二个Segment的DocId范围转换为100-200。
+        DocId在Segment内唯一，取值从0开始递增，但不代表一定是连续的，如果有Doc被删除，可能会存在空值。
+        一个文档对应的DocId可能会发生变化，主要是发生在Segment合并时。
+        Lucene内最核心的倒排索引，本质上就是Term到所有包含该Term的文档的DocId列表的映射。所有Lucene内部在搜索的时候会是一个两阶段的查询，第一阶段是通过给定的Term的条件找到所有的Doc的DocId列表，第二阶段是根据DocId查找Doc。Lucene提供基于Term的搜索功能，也提供基于DocId的查询功能。
+        DocId采用一个从0开始递增的int32值。
 
-- 倒排表（Posting List）
-每个字符串到包含此字符串的文档（Document）是以链表的形式存储，此文档链表称为倒排链表。
+# 三、索引类型
+        Lucene中支持丰富的字段类型，每种字段类型确定了支持的数据类型及索引方式，目前支持的字段类型包括LongPoint、TextField、StringField、NumericDocValues等。
+![blockchain](/resource/images/lucene%20field.png "Lucene Field")  
+        如图是Lucene中对于不同类型Field定义的一个基本关系，所有字段都会继承自Field这个类。
+        Field包含3个重要属性：name(String)、fieldsData(BytesRef)和type(FieldType)。name即字段的名称，fieldsData即字段值，所有类型的字段的值最终都会转换为二进制字节流来表示,type是字段类型，确定了该字段被索引的方式。
+        FieldType包含了多个重要属性，这些属性的值共同决定了该字段被索引的方式。
+  - stored：代表是否需要保存该字段，如果是false，则lucene不会保存这个字段的值，而搜索结果中返回的文档只包含保存了的字段；
+  - tokenized：代表是否做分词，在Lucene中只有TextField这个字段需要做分词。
+  - termVector：保存了一个文档内所有的term的相关信息，包括term值、出现次数（frequencies）以及位置(positions)等，是一个per-document inverted vector。term vector的用途只有2个：1、关键词高亮；2、文档间相似匹配度计算；
+  - omitNorms：Lucene允许每个文档的每个字段都存储一个normalization factor，是和搜索时的相关性计算相关的一个系数。norms的存储只占一个字段，但是每个文档的每个字段都会独立存储一份，且norms数据会全部加载到内存。索引若开启了norms，会消耗额外的存储空间和内存。
+  - indexOptions：Lucene提供倒排索引的5中可选参数（NONE、DOCS、DOCS_AND_FREQS、DOCS_AND_FREQS_AND_POSITIONS、DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS）,用于选择该字段是否需要被索引，以及索引哪些内容。
+  - docValuesType：DocValue是Lucene4.0引入的一个正排索引(docid到field的一个列存)，大大优化了sorting、faceting或aggregation的效率。DocValues是一个强Schema的存储结构，开启DocValues的字段必须拥有严格一致的类型，目前Lucene只提供NUMERIC、BINARY、SORTED、SORTED_NUMERIC和SORTED_SET五种类型。
+  - dimension：Lucene支持多维数据的索引，采用特殊的索引来优化对多维数据的查询，这类数据最典型的应用场景是地理位置索引，一般经纬数据会采取这种索引格式。
 
-# 三、如何创建索引
-1. 将文档传递给分词组件(Tokenizer)  
-   1. 将文档分词一个一个单独的单次；  
-   2. 去除标点符号；
-   3. 去除停词（stop word）（太普通，不能代表任何意义，去掉停词有助与减少长尾现象）  
-   4. 经过分词处理的结果成为词元（token）
-2. 将得到的词元传递给语言处理组件（Linguistic Processor）
-   语言处理组件(linguistic processor)主要是对得到的词元做一些同语言相关的处理。对于英语而言，一般做到如下几点：
-   1. 统一大小写（lowercase）
-   2. 将单词缩减为词根形式，如"cars"变为"car"，这种操作称为stemming.
-   3. 将单词转变为词根形式，如"drove"到"drive"，这种操作称为lemmatization.
-   4. 语言处理组件处理的结果成为词（Term）
-3. 将得到的词（Term）传给索引组件（Indexer）
-    索引组件主要作以下几件事：
-    1. 利用得到的词（Term）创建一个字典；
-    2. 对字典按字母顺序进行排序；
-    3. 合并相同的词成为文档倒排(Posting List)链表；在此表中，有几个定义：
-       1. Document Frequency：文档频次，表示总共有多少个文件包含此词。
-       2. Frequency：词频率，此文件包含了几个这个词；
+# 四、常见字段类型
+  - StoredField  
+    一个只存值的字段  
+    stored：true  
 
-# 四、如何对索引进行搜索
-1. 用户输入查询语句
-2. 对查询语句进行词法分析、语法分析及语言处理；
-   1. 词法分析主要用来识别单次和关键词；
-   2. 语法分析主要是根据语句的语法规则来形成一颗语法树；
-   3. 语言处理同索引过程中的语言处理几乎相同；
-3. 搜索索引，得到符合语法树的文档。
-    此步骤有分几小部：
-    1. 在文档倒排链表中，找到包含搜索词的文档链表；
-    2. 对多个文档链表合并处理，得到我们想要找的文档。
-4. 根据得到的文档和查询语句的相关性，对结果进行排序。
-   1. 计算权重（Term Weight）的过程
-   影响一个词在一篇文档中的重要性主要有2个因素：
-      1. Term Frequency(tf)：即此词在此文档中出现了多少次，tf越大说明越重要；
-      2. Document Frequency(df)：即有多少文档包含此Term，df越大说明越不重要；  
-      3. 权重计算公式：$W_1$ = $tf_t,d$ × log(n / $df_t$)
-   2. 判断Term之间的关系从而得到文档相关性的过程，也即向量空间模型的算法（VSM）
-    我们把文档看做一些列词，每个词都有一个权重，不同的词根据自己在文档中的权重来影响文档相关性的打分计算。  
-    于是我们把所有此文档中词的权重看成一个向量：  
-    Document Vector = {term1 : weight1, term2 : weight2, ... , termN : weightN}  
-    我们把所有搜索出来的文档向量及查询向量放在一个N维空间中，每个词是一维，然后我们通过计算两个向量的余弦计算相关性打分。
-    
-    
+  - SortedDocValuesField  
+    一个只做正排索引的字段  
+    docValuesType：SORTED
+
+  - SortedNumericDocValuesField  
+    一个只做正排索引的数据字段  
+    docValuesType：SORTED_NUMERIC
+
+  - SortedSetDocValuesField  
+    一个只做正排索引的集合字段  
+    docValuesType：SORTED_SET
+  
+  - StringField  
+    包含两种类型：TYPE_NOT_STORED和TYPE_STORED
+    - TYPE_NOT_STORED  
+    omitNorms：true，  需要normalization factor  
+    indexOptions：DOCS，需要做倒排索引  
+    tokenized：false，不做分词  
+    - TYPE_STORED  
+    omitNorms：true，需要normalization factor  
+    indexOptions：DOCS，需要做倒排索引，只需要DOC信息  
+    tokenized：false，不做分词 
+    stored：true，保存字段
+
+  - TextField  
+    包含两种类型：TYPE_NOT_STORED和TYPE_STORED
+    - TYPE_NOT_STORED  
+    indexOptions：DOCS_AND_FREQS_AND_POSITION，需要做倒排索引，包括DOC、FREQ、POSITION等信息；  
+    tokenization：true，需要做切词  
+    - TYPE_STORED  
+    indexOptions：DOCS_AND_FREQS_AND_POSITION，需要做倒排索引，包括DOC、FREQ、POSITION等信息；  
+    tokenization：true，需要做切词  
+    stored：true，保存字段  
+
+  - NumericDocValuesField  
+    docValuesType：NUMERIC，需要做正排索引；
+    DoubleDocValuesField、FloatDocValuesField为其子类，属性一致；
+  
+  - BinaryDocValuesField
+    docValuesType：BINARY，需要做正排索引
+
+
+  - LongPoint、IntPoint、DoublePoint、FloatPoint、BinaryPoint  
+    dimensions：根据构造决定，默认是1
+
+ - LongRange、IntRange、DoubleRange、FloatRange  
+    dimensions是*Point的2倍，也即min和max各算一个dimension。
