@@ -40,7 +40,7 @@
   - tokenized：代表是否做分词，在Lucene中只有TextField这个字段需要做分词。
   - termVector：保存了一个文档内所有的term的相关信息，包括term值、出现次数（frequencies）以及位置(positions)等，是一个per-document inverted vector。term vector的用途只有2个：1、关键词高亮；2、文档间相似匹配度计算；
   - omitNorms：Lucene允许每个文档的每个字段都存储一个normalization factor，是和搜索时的相关性计算相关的一个系数。norms的存储只占一个字段，但是每个文档的每个字段都会独立存储一份，且norms数据会全部加载到内存。索引若开启了norms，会消耗额外的存储空间和内存。
-  - indexOptions：Lucene提供倒排索引的5中可选参数（NONE、DOCS、DOCS_AND_FREQS、DOCS_AND_FREQS_AND_POSITIONS、DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS）,用于选择该字段是否需要被索引，以及索引哪些内容。
+  - indexOptions：Lucene提供倒排索引的5中可选参数（NONE（不做索引）、DOCS（只存储DocId）、DOCS_AND_FREQS（存储DocId和词频）、DOCS_AND_FREQS_AND_POSITIONS（存储DocId、词频和位置）、DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS（存储DocId、词频、位置和便宜））,用于选择该字段是否需要被索引，以及索引哪些内容。
   - docValuesType：DocValue是Lucene4.0引入的一个正排索引(docid到field的一个列存)，大大优化了sorting、faceting或aggregation的效率。DocValues是一个强Schema的存储结构，开启DocValues的字段必须拥有严格一致的类型，目前Lucene只提供NUMERIC、BINARY、SORTED、SORTED_NUMERIC和SORTED_SET五种类型。
   - dimension：Lucene支持多维数据的索引，采用特殊的索引来优化对多维数据的查询，这类数据最典型的应用场景是地理位置索引，一般经纬数据会采取这种索引格式。
 
