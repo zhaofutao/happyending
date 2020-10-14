@@ -13,7 +13,20 @@
   - 操作
     - createWeight(IndexSearcher searcher, ScoreMode scoreMode, float boost)
     - rewrite(IndexReader reader)  
-        需要重写
+      - 只有一个条件：
+        - 只有一个should或must，直接返回，不需要重写；
+        - 只有一个filter，改写为boostQuery，boost = 0；
+        - 只有一个must_not，改写为matchNoDocsQuery，不匹配任何文档;
+
+      - 多个条件：
+        - 首先遍历booleanQuery中的所有query对象，调用他们自身的重写方法，如果有改写的，就生成新的booleanQuery返回（如果所有条件都是term，则不会改写，才会进行下面的步骤）；
+        - 判断filter、must_not条件有重复，去重后生成新的booleanQuery返回；
+        - 判断是否must_not和filter是否有相同的term，如果有，返回MatchNoDocsQuery，不匹配任何文档；
+        - 判断must_not是否有matchAllDocsQuery，如果有，返回MatchNoDocsQuery，不匹配任何文档；
+        - 判断filter和must是否有相同的term，如果有，去重filterQuery；
+        - 判断filter和should是否有相同的term，如果有，改写为must；
+        - 判断是否有重复的should条件，改写为boostQuery，boost为重复should条件的和；
+        - 判断是否有重复的must条件，改写为boostQuery，boost为重复must条件的和；
 
 # 三、MultiTermQuery
   - 成员

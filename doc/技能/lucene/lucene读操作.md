@@ -48,7 +48,7 @@ Analyzer analyzer = new StandardAnalyzer();
 
 
 # 三、Lucene倒排合并
-    加入有三个倒排需要进行合并：
+    假如有三个倒排需要进行合并：
 ## 1. 在termA开始遍历，得到第一个元素docId = 1
 ## 2. set currentDocId = 1
 ## 3. 在termB中search(currentDocId)，返回大于等于currentDocId的一个doc.
